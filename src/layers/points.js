@@ -129,18 +129,29 @@ export default Kapsule({
     //
 
     function createObj() {
-      const obj = new THREE.Mesh(pointGeometry);
+      const obj = new THREE.Group(); // container
+      const line = new THREE.Mesh(pointGeometry);
+      obj.add(line);
+      // pin 
+      const geometry = new THREE.SphereGeometry( 3, 32, 16 );
+      const videoMaterial = new THREE.MeshBasicMaterial();
+      const pin = new THREE.Mesh(geometry, videoMaterial);
+      obj.add(pin);
 
       obj.__globeObjType = 'point'; // Add object type
       return obj;
     }
 
     function updateObj(obj, d) {
+      const [lineObj, pinObj] = obj.children;
+
       const applyUpdate = td => {
         const { r, alt, lat, lng } = obj.__currentTargetD = td;
 
         // position cylinder ground
-        Object.assign(obj.position, polar2Cartesian(lat, lng));
+        const position = polar2Cartesian(lat, lng);
+        Object.assign(obj.position, position);
+        Object.assign(pinObj.position, { x: 0, y: 0, z: -1.2/state.pointAltitude});
 
         // orientate outwards
         const globeCenter = state.pointsMerge
@@ -149,8 +160,8 @@ export default Kapsule({
         obj.lookAt(globeCenter);
 
         // scale radius and altitude
-        obj.scale.x = obj.scale.y = Math.min(30, r) * pxPerDeg;
-        obj.scale.z = Math.max(alt * GLOBE_RADIUS, 0.1); // avoid non-invertible matrix
+        lineObj.scale.x = lineObj.scale.y = Math.min(30, r) * pxPerDeg;
+        lineObj.scale.z = Math.max(alt * GLOBE_RADIUS, 0.1); // avoid non-invertible matrix
       };
 
       const targetD = {
@@ -181,7 +192,7 @@ export default Kapsule({
         const color = colorAccessor(d);
         const opacity = color ? colorAlpha(color) : 0;
         const showCyl = !!opacity;
-        obj.visible = showCyl;
+        lineObj.visible = showCyl;
         if (showCyl) {
           if (!pointMaterials.hasOwnProperty(color)) {
             pointMaterials[color] = new THREE.MeshLambertMaterial({
@@ -190,7 +201,7 @@ export default Kapsule({
               opacity: opacity
             });
           }
-          obj.material = pointMaterials[color];
+          lineObj.material = pointMaterials[color];
         }
       }
     }
