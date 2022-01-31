@@ -66,6 +66,7 @@ const linkedGlobeLayerMethods = Object.assign(...[
 const bindPointsLayer = linkKapsule('pointsLayer', PointsLayerKapsule);
 const linkedPointsLayerProps = Object.assign(...[
   'pointsData',
+  'pointUrl',
   'pointLat',
   'pointLng',
   'pointColor',

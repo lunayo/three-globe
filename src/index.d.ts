@@ -60,6 +60,8 @@ export declare class ThreeGlobeGeneric<ChainableInstance> extends Object3D {
   pointsMerge(merge: boolean): ChainableInstance;
   pointsTransitionDuration(): number;
   pointsTransitionDuration(durationMs: number): ChainableInstance;
+  pointUrl(): ObjAccessor<string>;
+  pointUrl(urlAccessor: ObjAccessor<string>): ChainableInstance;
 
   // Arcs layer
   arcsData(): object[];

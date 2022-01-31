@@ -48,6 +48,7 @@ const applyMatrix4Fn = new THREE.BufferGeometry().applyMatrix4 ? 'applyMatrix4' 
 export default Kapsule({
   props: {
     pointsData: { default: [] },
+    pointUrl: { default: 'videoUrl' },
     pointLat: { default: 'lat' },
     pointLng: { default: 'lng' },
     pointColor: { default: () => '#ffffaa' },
@@ -70,6 +71,7 @@ export default Kapsule({
     // Data accessors
     const latAccessor = accessorFn(state.pointLat);
     const lngAccessor = accessorFn(state.pointLng);
+    const urlAccessor = accessorFn(state.pointUrl);
     const altitudeAccessor = accessorFn(state.pointAltitude);
     const radiusAccessor = accessorFn(state.pointRadius);
     const colorAccessor = accessorFn(state.pointColor);
@@ -127,14 +129,31 @@ export default Kapsule({
     }
 
     //
+    function createVideo(url, width, height) {
+      const video = document.createElement('video');
+      video.src = url;
+      video.loop = true;
+      video.muted = true;
+      video.autoplay = true;
+      video.width = width;
+      video.height = height;
+      return video;
+    }
 
-    function createObj() {
+    function createObj(d) {
       const obj = new THREE.Group(); // container
       const line = new THREE.Mesh(pointGeometry);
       obj.add(line);
+
+      const videoWidth = 120;
+      const videoHeight = 90;
+      const video = createVideo(urlAccessor(d), videoWidth, videoHeight);
+      const videoTexture = new THREE.VideoTexture(video);
+      video.play();
+
       // pin 
       const geometry = new THREE.SphereGeometry( 3, 32, 16 );
-      const videoMaterial = new THREE.MeshBasicMaterial();
+      const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
       const pin = new THREE.Mesh(geometry, videoMaterial);
       obj.add(pin);
 
