@@ -2,7 +2,7 @@
   <style> body { margin: 0; } </style>
 
   <script src="//unpkg.com/three"></script>
-  <script src="//unpkg.com/three/examples/js/controls/TrackballControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
   <script src="data.js"></script>
   <script src="dist/three-globe.js"></script>
 </head>
@@ -39,16 +39,59 @@
     camera.updateProjectionMatrix();
     camera.position.z = 280;
 
-    // Add camera controls
-    const tbControls = new THREE.TrackballControls(camera, renderer.domElement);
-    tbControls.minDistance = 101;
-    tbControls.rotateSpeed = 5;
-    tbControls.zoomSpeed = 0.8;
+
+    document.onkeydown = checkKey;
+    function animatePosition(targetAngle, targetSpeed, callback) {
+      let speed = { angle: 0.0 };
+      let tween = new TWEEN.Tween(speed)
+        .easing(TWEEN.Easing.Cubic.InOut)
+        .to({ angle: targetAngle }, targetSpeed)
+        .start();
+
+      tween.onUpdate(function(){
+        callback(speed.angle);
+      });
+    }
+    function checkKey(e) {
+        e = e || window.event;
+        const currentPosition = { ...camera.position };
+        if (e.keyCode == '38') {
+            // up arrow
+            animatePosition(0.03, 500, function(angle) {
+              if (scene.rotation.x < -1.5) return;
+              scene.rotation.x -= angle;
+            });
+        }
+        else if (e.keyCode == '40') {
+            // down arrow
+            animatePosition(0.03, 500, function(angle) {
+              if (scene.rotation.x > 1.5) return;
+              scene.rotation.x += angle;
+            });
+        }
+        else if (e.keyCode == '37') {
+            // left arrow
+            animatePosition(0.05, 500, function(angle) {
+              // if (currentPosition.z * Math.cos(angle) + currentPosition.y * Math.sin(angle) < 0) return;
+              scene.rotation.y -= angle;
+            });
+        }
+        else if (e.keyCode == '39') {
+            // right arrow
+            animatePosition(0.05, 500, function(angle) {
+              // if (currentPosition.z * Math.cos(angle) + currentPosition.y * Math.sin(angle) < 0) return;
+              scene.rotation.y += angle;
+            });
+        }
+        else if (e.keyCode == '13') {
+          // enter key
+      }
+    }
 
     // Kick-off renderer
     (function animate() { // IIFE
       // Frame cycle
-      tbControls.update();
+      TWEEN.update();
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
     })();
