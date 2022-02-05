@@ -266,6 +266,7 @@ export default Kapsule({
     // Add all layers groups
     layers.forEach(layer => {
       const g = new THREE.Group();
+      g.name = layer;
       state.scene.add(g);
       state[layer](g);
     });
