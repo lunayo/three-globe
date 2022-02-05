@@ -49,6 +49,7 @@ export default Kapsule({
   props: {
     pointsData: { default: [] },
     pointUrl: { default: 'videoUrl' },
+    pinColor: { default: 'color' },
     pointLat: { default: 'lat' },
     pointLng: { default: 'lng' },
     pointColor: { default: () => '#ffffaa' },
@@ -72,6 +73,7 @@ export default Kapsule({
     const latAccessor = accessorFn(state.pointLat);
     const lngAccessor = accessorFn(state.pointLng);
     const urlAccessor = accessorFn(state.pointUrl);
+    const pinColorAccessor = accessorFn(state.pinColor);
     const altitudeAccessor = accessorFn(state.pointAltitude);
     const radiusAccessor = accessorFn(state.pointRadius);
     const colorAccessor = accessorFn(state.pointColor);
@@ -151,18 +153,68 @@ export default Kapsule({
       const videoTexture = new THREE.VideoTexture(video);
       video.play();
 
+      const vertexShader = [
+        'uniform vec3 viewVector;',
+        'uniform float c;',
+        'uniform float p;',
+        'varying float intensity;',
+        'void main() ',
+        '{',
+        '  vec3 vNormal = normalize( normalMatrix * normal );',
+        '  vec3 vNormel = normalize( normalMatrix * viewVector );',
+        '  intensity = pow( c - dot(vNormal, vNormel), p );',
+        '  gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
+        '}'
+      ].join('\n');
+
+      const fragmentShader = [
+        'uniform vec3 glowColor;',
+        'varying float intensity;',
+        'void main() ',
+        '{',
+        '  vec3 glow = glowColor * intensity;',
+        '    gl_FragColor = vec4( glow, 1.0 );',
+        '}'
+      ].join('\n');
+
+      const pinColor = parseInt(pinColorAccessor(d).replace(/^#/, ''), 16);
+
+      // create custom material from the shader code above
+      // that is within specially labeled script tags
+      var customMaterial = new THREE.ShaderMaterial(
+        {
+          uniforms:
+          {
+            "c":   { type: "f", value: 1.0 },
+            "p":   { type: "f", value: 2.2 },
+            glowColor: { type: "c", value: new THREE.Color(pinColor) },
+            viewVector: { type: "v3", value: camera.position }
+          },
+          vertexShader: vertexShader,
+          fragmentShader: fragmentShader,
+          side: THREE.BackSide,
+          blending: THREE.AdditiveBlending,
+          transparent: true
+        }
+      );
+
       // pin 
-      const geometry = new THREE.SphereGeometry( 3, 32, 16 );
+      const geometry = new THREE.SphereGeometry( 4, 32, 16 );
       const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
       const pin = new THREE.Mesh(geometry, videoMaterial);
       obj.add(pin);
+
+      // glow
+      var pinGlow = new THREE.Mesh( geometry.clone(), customMaterial.clone() );
+      pinGlow.scale.multiplyScalar(1.2);
+      obj.add(pinGlow);
 
       obj.__globeObjType = 'point'; // Add object type
       return obj;
     }
 
     function updateObj(obj, d) {
-      const [lineObj, pinObj] = obj.children;
+      const [lineObj, pinObj, pinGlow] = obj.children;
 
       const applyUpdate = td => {
         const { r, alt, lat, lng } = obj.__currentTargetD = td;
@@ -170,7 +222,8 @@ export default Kapsule({
         // position cylinder ground
         const position = polar2Cartesian(lat, lng);
         Object.assign(obj.position, position);
-        Object.assign(pinObj.position, { x: 0, y: 0, z: -1.2/state.pointAltitude});
+        Object.assign(pinObj.position, { x: 0, y: 0, z: -1.0/state.pointAltitude});
+        Object.assign(pinGlow.position, pinObj.position);
 
         // orientate outwards
         const globeCenter = state.pointsMerge
