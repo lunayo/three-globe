@@ -52,6 +52,8 @@ export default Kapsule({
     pinColor: { default: 'color' },
     pointLat: { default: 'lat' },
     pointLng: { default: 'lng' },
+    pointTitle: { default: 'title'},
+    pointDescription: { default: 'description'},
     pointColor: { default: () => '#ffffaa' },
     pointAltitude: { default: 0.1 }, // in units of globe radius
     pointRadius: { default: 0.25 }, // in deg
@@ -73,6 +75,8 @@ export default Kapsule({
     const latAccessor = accessorFn(state.pointLat);
     const lngAccessor = accessorFn(state.pointLng);
     const urlAccessor = accessorFn(state.pointUrl);
+    const descriptionAccessor = accessorFn(state.pointDescription);
+    const titleAccessor = accessorFn(state.pointTitle);
     const pinColorAccessor = accessorFn(state.pinColor);
     const altitudeAccessor = accessorFn(state.pointAltitude);
     const radiusAccessor = accessorFn(state.pointRadius);
@@ -124,7 +128,6 @@ export default Kapsule({
       }));
 
       points.__globeObjType = 'points'; // Add object type
-      points.__data = state.pointsData; // Attach obj data
 
       emptyObject(state.scene);
       state.scene.add(points);
@@ -210,6 +213,9 @@ export default Kapsule({
       obj.add(pinGlow);
 
       obj.__globeObjType = 'point'; // Add object type
+      obj.__title = titleAccessor(d);
+      obj.__description = descriptionAccessor(d);
+      obj.__url = urlAccessor(d);
       return obj;
     }
 
