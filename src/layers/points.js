@@ -160,6 +160,7 @@ export default Kapsule({
         'uniform vec3 viewVector;',
         'uniform float c;',
         'uniform float p;',
+        'uniform float opacity;',
         'varying float intensity;',
         'void main() ',
         '{',
@@ -172,11 +173,12 @@ export default Kapsule({
 
       const fragmentShader = [
         'uniform vec3 glowColor;',
+        'uniform float opacity;',
         'varying float intensity;',
         'void main() ',
         '{',
         '  vec3 glow = glowColor * intensity;',
-        '    gl_FragColor = vec4( glow, 1.0 );',
+        '    gl_FragColor = vec4( glow, opacity );',
         '}'
       ].join('\n');
 
@@ -190,6 +192,7 @@ export default Kapsule({
           {
             "c":   { type: "f", value: 1.0 },
             "p":   { type: "f", value: 2.2 },
+            "opacity": { type: "f", value: 1.0 }, 
             glowColor: { type: "c", value: new THREE.Color(pinColor) },
             viewVector: { type: "v3", value: camera.position }
           },

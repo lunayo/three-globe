@@ -178,15 +178,19 @@
       const pointsLayer = rootLayer.children.filter(obj => obj.name == 'pointsLayer');
       const points = pointsLayer[0].children;
       for (let i=0;i<points.length; ++i) {
-        animateScale(
-          {pinScale: points[i].children[1].scale.x, glowScale: points[i].children[2].scale.x},
-          {pinScale: 1, glowScale: 1.2},
-        800, function(scalar) {
-          points[i].children[1].scale.setScalar(scalar.pinScale);
-          points[i].children[2].scale.setScalar(scalar.glowScale);
-        }, function() {
-          
-        });
+        if(points[i]) {
+          animateScale(
+            {pinScale: points[i].children[1].scale.x, glowScale: points[i].children[2].scale.x},
+            {pinScale: 1, glowScale: 1.2},
+          800, function(scalar) {
+            if(points[i]) {
+              points[i].children[1].scale.setScalar(scalar.pinScale);
+              points[i].children[2].scale.setScalar(scalar.glowScale);
+            }
+          }, function() {
+
+          });
+        }
       }
     }
     var currentPoint;
@@ -210,8 +214,10 @@
         animateScale(
           {pinScale: currentPoint.children[1].scale.x, glowScale: currentPoint.children[2].scale.x},
           {pinScale: 2, glowScale: 2.4}, 800, function(scalar) {
-            currentPoint.children[1].scale.setScalar(scalar.pinScale);
-            currentPoint.children[2].scale.setScalar(scalar.glowScale);
+            if (currentPoint) {
+              currentPoint.children[1].scale.setScalar(scalar.pinScale);
+              currentPoint.children[2].scale.setScalar(scalar.glowScale);
+            }
         });
       }
     }
@@ -287,6 +293,25 @@
       requestAnimationFrame(animate);
     })();
 
+    function setGroupOpacity(group, opacity) {
+      group.children.forEach(function(child) {
+        setGroupOpacity(child, opacity);
+      });
+      if(group.material) {
+        group.material.opacity = opacity;
+      }
+    }
+
+    function randomRemovePinObject() {
+      const rootLayer = scene.children[0].children[0];
+      const pointsLayer = rootLayer.children.filter(obj => obj.name == 'pointsLayer');
+      const points = pointsLayer[0].children;
+      if (points.length > 0) {
+        const index = Math.floor(Math.random() * points.length);
+        points.splice(index, 1);
+      }
+    }
+
     // Clock
     const timeElm = document.getElementById('time');
     const doc = document.documentElement;
@@ -297,10 +322,20 @@
     const animationFrame$ = Rx.Observable.interval(0, Rx.Scheduler.animationFrame);
 
     // 3 minutes countdown
-    var seconds = 10800;
+    const totalTime = 10800;
+    const threshold = (totalTime-2400)/data.length;
+    var seconds = totalTime;
+    var currentThreshold = threshold;
+    var opacity = 1.0;
     const time$ = Rx.Observable
       .interval(1000)
       .map(() => {
+        opacity -= 1.0/180;
+        setGroupOpacity(scene, opacity);
+        if(seconds < totalTime - currentThreshold) {
+          randomRemovePinObject();
+          currentThreshold += threshold;
+        }
         seconds = Math.max(0, seconds - 60);
         return {      
           minutes: Math.floor(seconds / 3600),
