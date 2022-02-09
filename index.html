@@ -215,9 +215,13 @@
         });
       }
     }
+    var modal;
     function checkKey(e) {
         e = e || window.event;
         const currentPosition = { ...camera.position };
+        if(modal) {
+          modal.hide();
+        }
         if (e.keyCode == '38') {
             // up arrow
             triggerPinUnfocus();
@@ -261,7 +265,7 @@
         else if (e.keyCode == '13') {
           // enter key
           if (currentPoint) {
-            const modal = new VideoModal(currentPoint.__title, 
+            modal = new VideoModal(currentPoint.__title, 
               currentPoint.__description, currentPoint.__url);
             modal.show();
           }
@@ -297,7 +301,7 @@
     const time$ = Rx.Observable
       .interval(1000)
       .map(() => {
-        seconds -= 60;
+        seconds = Math.max(0, seconds - 60);
         return {      
           minutes: Math.floor(seconds / 3600),
           seconds: (seconds % 3600) / 60,
