@@ -404,7 +404,7 @@
           .interval(1000)
           .map(() => {
             opacity -= 1.0 / 180;
-            setGroupOpacity(scene, opacity);
+            setGroupOpacity(scene.children[0], opacity);
             if (seconds < totalTime - currentThreshold) {
               randomRemovePinObject();
               currentThreshold += threshold;
