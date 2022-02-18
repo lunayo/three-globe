@@ -278,7 +278,7 @@
         var target = new THREE.Vector3();
         points[i].getWorldPosition(target);
         const distance = camera.position.distanceTo(target);
-        if (distance < nearestDistance && distance < 190) {
+        if (distance < nearestDistance && distance < 191) {
           nearestDistance = distance;
           curr = points[i];
         }
