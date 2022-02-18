@@ -247,10 +247,14 @@
       }).onComplete(onComplete);
     }
 
-    function triggerPinUnfocus() {
+    function getPinPoints() {
       const rootLayer = scene.children[0].children[0];
       const pointsLayer = rootLayer.children.filter(obj => obj.name == 'pointsLayer');
-      const points = pointsLayer[0].children;
+      return pointsLayer[0].children;
+    }
+
+    function triggerPinUnfocus(callback) {
+      const points = getPinPoints();
       for (let i = 0; i < points.length; ++i) {
         if (points[i]) {
           animateScale(
@@ -261,30 +265,31 @@
                 points[i].children[1].scale.setScalar(scalar.pinScale);
                 points[i].children[2].scale.setScalar(scalar.glowScale);
               }
-            }, function () {
-
-            });
+            }, callback);
         }
       }
     }
-    var currentPoint;
-    function triggerPinFocus() {
-      currentPoint = null;
-      const rootLayer = scene.children[0].children[0];
-      const pointsLayer = rootLayer.children.filter(obj => obj.name == 'pointsLayer');
-      const points = pointsLayer[0].children;
+
+    function getNearestPointToCamera() {
+      const points = getPinPoints();
+      var curr;
       var nearestDistance = Number.MAX_SAFE_INTEGER;
       for (let i = 0; i < points.length; ++i) {
         var target = new THREE.Vector3();
         points[i].getWorldPosition(target);
         const distance = camera.position.distanceTo(target);
-        if (distance < nearestDistance && distance < 197) {
+        if (distance < nearestDistance && distance < 190) {
           nearestDistance = distance;
-          currentPoint = points[i];
+          curr = points[i];
         }
       }
-      // console.log(nearestDistance);
-      if (currentPoint) {
+      return curr;
+    }
+
+    var currentPoint;
+    function triggerPinFocus(point) {
+      if (point) {
+        currentPoint = point;
         animateScale(
           { pinScale: currentPoint.children[1].scale.x, glowScale: currentPoint.children[2].scale.x },
           { pinScale: 2, glowScale: 2.4 }, 800, function (scalar) {
@@ -295,6 +300,46 @@
           });
       }
     }
+
+    function getNearestPoint(direction) {
+      if(currentPoint == null) return null;
+      const points = getPinPoints();
+      var center = new THREE.Vector3();
+      currentPoint.getWorldPosition(center);
+      const distanceThreshold = 40;
+      var filterFunction = function(target, center) {
+        if (direction === 'left') {
+          return target.x < center.x;
+        } else if (direction === 'right')  {
+          return target.x > center.x;
+        } else if (direction === 'up') {
+          return target.y > center.y;
+        } else {
+          return target.y < center.y;
+        }
+      }
+      var filteredPoints = points.filter(function(point) {
+        var target = new THREE.Vector3();
+        point.getWorldPosition(target);
+        const distance = center.distanceTo(target);
+        return point.__title !== currentPoint.__title &&
+          filterFunction(target, center) && distance < distanceThreshold;
+      });
+      
+      var candidatePoint = null;
+      var currentDistance = Number.MAX_SAFE_INTEGER;
+      for(var i=0;i<filteredPoints.length;++i) {
+        var target = new THREE.Vector3();
+        filteredPoints[i].getWorldPosition(target);
+        const distance = center.distanceTo(target);
+        if(distance < currentDistance) {
+          currentDistance = distance;
+          candidatePoint = filteredPoints[i];
+        }
+      }
+      return candidatePoint;
+    }
+
     var modal;
     function checkKey(e) {
       e = e || window.event;
@@ -302,47 +347,63 @@
       if (modal) {
         modal.hide();
       }
-      if (e.keyCode == '38') {
-        // up arrow
+      if (e.keyCode >= 37 && e.keyCode <= 40) {
         triggerPinUnfocus();
-        animatePosition(0.03, 500, function (angle) {
-          if (scene.rotation.x < -1.5) return;
-          scene.rotation.x -= angle;
+        var nearestPoint;
+        var angle;
+        var rotationFunction;
+        if (e.keyCode == '38') {
+          // up arrow
+          angle = 0.3;
+          nearestPoint = getNearestPoint('down');
+          const sceneRotation = scene.rotation.x;
+          rotationFunction = function(angle) {
+            scene.rotation.x = sceneRotation - angle;
+          }
+        } else if (e.keyCode == '40') {
+          // down arrow
+          angle = 0.3;
+          nearestPoint = getNearestPoint('up');
+          const sceneRotation = scene.rotation.x;
+          rotationFunction = function(angle) {
+            scene.rotation.x = sceneRotation + angle;
+          }
+        } else if (e.keyCode == '37') {
+          // left arrow
+          angle = 0.5;
+          nearestPoint = getNearestPoint('right');
+          const sceneRotation = scene.rotation.y;
+          rotationFunction = function(angle) {
+            scene.rotation.y = sceneRotation - angle;
+          }
+        } else if (e.keyCode == '39') {
+          // right arrow
+          angle = 0.5;
+          nearestPoint = getNearestPoint('left');
+          const sceneRotation = scene.rotation.y;
+          rotationFunction = function(angle) {
+            scene.rotation.y = sceneRotation + angle;
+          }
+        }
+        if(nearestPoint) {
+          var nearest = new THREE.Vector3();
+          nearestPoint.getWorldPosition(nearest);
+          var current = new THREE.Vector3();
+          currentPoint.getWorldPosition(current);
+          nearest = new THREE.Vector3(nearest.x, nearest.y, nearest.z);
+          current = new THREE.Vector3(0, nearest.y, nearest.z);
+          angle = current.angleTo(nearest);
+          currentPoint = nearestPoint;
+        }
+        animatePosition(angle, 500, function (angle) {
+          rotationFunction(angle);
         }, function () {
-          triggerPinFocus();
+          if(!nearestPoint) {
+            nearestPoint = getNearestPointToCamera();  
+          }
+          triggerPinFocus(nearestPoint);
         });
-      }
-      else if (e.keyCode == '40') {
-        // down arrow
-        triggerPinUnfocus();
-        animatePosition(0.03, 500, function (angle) {
-          if (scene.rotation.x > 1.5) return;
-          scene.rotation.x += angle;
-        }, function () {
-          triggerPinFocus();
-        });
-      }
-      else if (e.keyCode == '37') {
-        // left arrow
-        triggerPinUnfocus();
-        animatePosition(0.04, 500, function (angle) {
-          // if (currentPosition.z * Math.cos(angle) + currentPosition.y * Math.sin(angle) < 0) return;
-          scene.rotation.y -= angle;
-        }, function () {
-          triggerPinFocus();
-        });
-      }
-      else if (e.keyCode == '39') {
-        // right arrow
-        triggerPinUnfocus();
-        animatePosition(0.04, 500, function (angle) {
-          // if (currentPosition.z * Math.cos(angle) + currentPosition.y * Math.sin(angle) < 0) return;
-          scene.rotation.y += angle;
-        }, function () {
-          triggerPinFocus();
-        });
-      }
-      else if (e.keyCode == '13') {
+      } else if (e.keyCode == '13') {
         // enter key
         if (currentPoint) {
           modal = new VideoModal(currentPoint.__title,
@@ -432,6 +493,8 @@
       camera.position.z = cameraPosition.z;
     }).onComplete(function () {
       timer.start();
+      currentPoint = getNearestPointToCamera();
+      triggerPinFocus(currentPoint);
     });
 
 
