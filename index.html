@@ -506,8 +506,8 @@
       frameEventName: 'animationFrame'})
 
     var swipeGestures = []
+    var isAnimating = false;
     controller.on('frame', function(frame){
-      console.log(frame);
       if(frame.valid && frame.gestures.length > 0){
         for (var i = 0; i < frame.gestures.length; i++) {
           var gesture = frame.gestures[i]
@@ -521,12 +521,17 @@
               swipeGestures.push(gesture)
             }
             if(gesture.state == "stop" && swipeGestures.length > 0)  {
+              if(isAnimating) {
+                swipeGestures = [];
+                return;
+              }
               triggerPinUnfocus();
+              isAnimating = true;
               var nearestPoint;
               var angle;
               var rotationFunction;
-              averageSpeed = swipeGestures.reduce((acc, c) => acc + c.speed, 0.0) / swipeGestures.length
-              console.log(`average speed: ${averageSpeed}`)
+              // averageSpeed = swipeGestures.reduce((acc, c) => acc + c.speed, 0.0) / swipeGestures.length
+              // console.log(`average speed: ${averageSpeed}`)
               //Classify swipe as either horizontal or vertical
               var isHorizontal = Math.abs(gesture.direction[0]) > Math.abs(gesture.direction[1])
               //Classify as right-left or up-down
@@ -584,6 +589,7 @@
                   nearestPoint = getNearestPointToCamera();  
                 }
                 triggerPinFocus(nearestPoint);
+                isAnimating = false;
               });
               console.log(swipeDirection)
               swipeGestures = []
