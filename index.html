@@ -394,15 +394,16 @@
           nearest = new THREE.Vector3(nearest.x, nearest.y, nearest.z);
           current = new THREE.Vector3(0, nearest.y, nearest.z);
           angle = current.angleTo(nearest);
-          currentPoint = nearestPoint;
         }
         animatePosition(angle, 500, function (angle) {
           rotationFunction(angle);
         }, function () {
           if(!nearestPoint) {
-            nearestPoint = getNearestPointToCamera();  
+            currentPoint = getNearestPointToCamera();  
+          } else {
+            currentPoint = nearestPoint;
           }
-          triggerPinFocus(nearestPoint);
+          triggerPinFocus(currentPoint);
         });
       } else if (e.keyCode == '13') {
         // enter key
@@ -507,8 +508,14 @@
 
     var swipeGestures = []
     var isAnimating = false;
-    controller.on('frame', function(frame){
-      if(frame.valid && frame.gestures.length > 0){
+    var lastGestureTime = new Date().getTime();
+    controller.on('frame', function(frame) {
+      const prevGestureDuration = new Date().getTime() - lastGestureTime;
+      if(isAnimating || prevGestureDuration < 1000) {
+        swipeGestures = [];
+        return;
+      }
+      if(frame.valid && frame.gestures.length > 0) {
         for (var i = 0; i < frame.gestures.length; i++) {
           var gesture = frame.gestures[i]
           if(gesture.type == "swipe") {
@@ -521,10 +528,10 @@
               swipeGestures.push(gesture)
             }
             if(gesture.state == "stop" && swipeGestures.length > 0)  {
-              if(isAnimating) {
-                swipeGestures = [];
-                return;
+              if (modal) {
+                modal.hide();
               }
+              lastGestureTime = new Date().getTime();
               triggerPinUnfocus();
               isAnimating = true;
               var nearestPoint;
@@ -580,19 +587,30 @@
                 nearest = new THREE.Vector3(nearest.x, nearest.y, nearest.z);
                 current = new THREE.Vector3(0, nearest.y, nearest.z);
                 angle = current.angleTo(nearest);
-                currentPoint = nearestPoint;
               }
               animatePosition(angle, 500, function (angle) {
                 rotationFunction(angle);
               }, function () {
                 if(!nearestPoint) {
-                  nearestPoint = getNearestPointToCamera();  
+                  currentPoint = getNearestPointToCamera();  
+                } else {
+                  currentPoint = nearestPoint;
                 }
-                triggerPinFocus(nearestPoint);
+                triggerPinFocus(currentPoint)
                 isAnimating = false;
               });
               console.log(swipeDirection)
               swipeGestures = []
+            }
+          }
+          else if (gesture.type === 'keyTap') {
+            console.log("keyTap");
+            lastGestureTime = new Date().getTime();
+            if (currentPoint) {
+              if (modal && modal.visible) return;
+              modal = new VideoModal(currentPoint.__title,
+                currentPoint.__description, currentPoint.__url);
+              modal.show();
             }
           }
         }
