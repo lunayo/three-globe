@@ -1,0 +1,37 @@
+/* CSS */
+.enterButton {
+    position: absolute;
+    background-color: rgb(24, 26, 27);
+    border: 1px solid rgb(60, 65, 67);
+    border-radius: .5rem;
+    box-sizing: border-box;
+    color: rgb(214, 211, 205);
+    font-family: "Inter var",ui-sans-serif,system-ui,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    font-size: .9.4rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    height: 48px;
+    min-width: 140px;
+    padding: .75rem 1rem;
+    text-align: center;
+    text-decoration: none rgb(206, 202, 195) solid;
+    text-decoration-thickness: auto;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.enterButton:hover {
+    background-color: rgb(249,250,251);
+}
+
+.enterButton:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.enterButton:focus-visible {
+    box-shadow: none;
+}
