@@ -1,4 +1,12 @@
 /* CSS */
+p {
+    display: inline;
+}
+
+span {
+    display: inline-block;
+}
+
 .enterButton {
     position: absolute;
     background-color: rgb(24, 26, 27);
@@ -34,4 +42,94 @@
 
 .enterButton:focus-visible {
     box-shadow: none;
+}
+
+#text-container {
+    position: absolute;
+    top: 10%;
+    color: rgb(255,255,255)
+}
+
+.fade-in-text {
+    /* display: block; */
+    font-family: "Pinto W00 NO_01","Trebuchet MS",Helvetica,sans-serif;
+    font-size: 1.5em;
+    color: white;
+    margin: 10;
+    opacity: 0;
+}
+
+.fade-in-text span {
+    font-size: 1em;
+}
+
+.author {
+    display: block;
+    text-align: right;
+}
+
+.fi-text-animation {
+    animation: fadeIn ease-in 1s forwards;
+    -webkit-animation: fadeIn ease-in 1s forwards;
+    -moz-animation: fadeIn ease-in 1s forwards;
+    -o-animation: fadeIn ease-in 1s forwards;
+    -ms-animation: fadeIn ease-in 1s forwards;
+}
+
+.fo-text-animation {
+    animation: fadeOut ease-out 1s forwards;
+    -webkit-animation: fadeOut ease-out 1s forwards;
+    -moz-animation: fadeOut ease-out 1s forwards;
+    -o-animation: fadeOut ease-out 1s forwards;
+    -ms-animation: fadeOut ease-out 1s forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@-moz-keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@-webkit-keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@-o-keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@-ms-keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+@-moz-keyframes fadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+@-webkit-keyframes fadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+@-o-keyframes fadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+@-ms-keyframes fadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
 }
