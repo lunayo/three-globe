@@ -20,6 +20,7 @@ const fragmentShader = `
 uniform vec3 color;
 uniform float coefficient;
 uniform float power;
+uniform float multiplier;
 varying vec3 vVertexNormal;
 varying vec3 vVertexWorldPosition;
 void main() {
@@ -29,7 +30,7 @@ void main() {
   float intensity	= pow(
     coefficient + dot(vVertexNormal, viewCameraToVertex),
     power
-  );
+  ) * multiplier;
   gl_FragColor = vec4(color, intensity);
 }`;
 
@@ -49,10 +50,11 @@ export const defaultOptions = {
   color: 'gold',
   size: 2,
   power: 1,
+  multiplier: 1.0
 };
 
 // Based off: http://stemkoski.blogspot.fr/2013/07/shaders-in-threejs-glow-and-halo.html
-export function createGlowMaterial(coefficient, color, power) {
+export function createGlowMaterial(coefficient, color, power, multiplier) {
   return new THREE.ShaderMaterial({
     depthWrite: false,
     fragmentShader,
@@ -67,6 +69,9 @@ export function createGlowMaterial(coefficient, color, power) {
       power: {
         value: power,
       },
+      multiplier: {
+        value: multiplier
+      }
     },
     vertexShader,
   });
@@ -89,10 +94,10 @@ export function createGlowGeometry(geometry, size) {
 }
 
 export function createGlowMesh(geometry, options = defaultOptions) {
-  const { backside, coefficient, color, size, power } = options;
+  const { backside, coefficient, color, size, power, multiplier } = options;
 
   const glowGeometry = createGlowGeometry(geometry, size);
-  const glowMaterial = createGlowMaterial(coefficient, color, power);
+  const glowMaterial = createGlowMaterial(coefficient, color, power, multiplier);
 
   if (backside) {
     glowMaterial.side = THREE.BackSide;

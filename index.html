@@ -355,6 +355,9 @@
       if (group.material) {
         group.material.opacity = opacity;
       }
+      if (group.__globeObjType === 'atmosphere') {
+        group.material.uniforms.multiplier.value = opacity;
+      }
     }
 
     function startTextAnimation() {
