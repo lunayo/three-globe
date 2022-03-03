@@ -12,8 +12,8 @@
 
   <script src="//unpkg.com/three"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
-  <script src="https://unpkg.com/@reactivex/rxjs@5.5.11/dist/global/Rx.min.js"></script>
-  <script src="https://unpkg.com/rxcss@0.6.0/dist/rxcss.min.js"></script>
+  <script src="https://unpkg.com/rxjs@6.6.7/bundles/rxjs.umd.min.js"></script>
+  <script src="https://unpkg.com/rxcss@0.10.0/dist/rxcss.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leapjs/0.6.1/leap.min.js"></script>
   <!-- <script src="//unpkg.com/three/examples/js/controls/TrackballControls.js"></script> -->
@@ -116,6 +116,19 @@
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     camera.position.z = 10000;
+
+    function showEndingVideo() {
+      const video = document.createElement('video');
+      video.src = 'video/thevanishingworld.mp4';
+      video.width = 1080;
+      video.height = 720;
+      const videoTexture = new THREE.VideoTexture(video);
+      video.play();
+      const geometry = new THREE.PlaneGeometry( 384, 216 );
+      const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+      const videoMesh = new THREE.Mesh(geometry, videoMaterial);
+      scene.add(videoMesh);
+    }
 
     const generateStarField = () => {
       const parameters = {};
@@ -392,8 +405,6 @@
 
       const pad = (val) => val < 10 ? `0${val}` : val;
 
-      const animationFrame$ = Rx.Observable.interval(0, Rx.Scheduler.animationFrame);
-
       timeElm.style.display = 'none';
 
       // 3 minutes countdown
@@ -423,9 +434,9 @@
 
       Timer.prototype.start = function () {
         this.show();
-        const time$ = Rx.Observable
-          .interval(1000)
-          .map(() => {
+        const { Observable } = rxjs;
+        const observable = new Observable(function subscribe(subscriber) {
+          const id = setInterval(() => {
             opacity -= 1.0 / 180;
             setGroupOpacity(scene.children[0], opacity);
             if (seconds < totalTime - currentThreshold) {
@@ -433,15 +444,23 @@
               currentThreshold += threshold;
             }
             seconds = Math.max(0, seconds - 60);
-            return {
+            const obj = {
               minutes: Math.floor(seconds / 3600),
               seconds: (seconds % 3600) / 60,
             };
-          })
-          .subscribe(({ hours, minutes, seconds }) => {
-            timeElm.setAttribute('data-hours', pad(minutes));
-            timeElm.setAttribute('data-minutes', pad(seconds));
-          });
+            if (obj.minutes == 0 && obj.seconds == 0) {
+              subscriber.complete();
+            } else {
+              subscriber.next(obj);
+            }
+          }, 1000);
+        }).subscribe(({ minutes, seconds }) => {
+          timeElm.setAttribute('data-hours', pad(minutes));
+          timeElm.setAttribute('data-minutes', pad(seconds));
+        }, null, () => {
+          this.hide();
+          showEndingVideo();
+        });
       }
     }
 
