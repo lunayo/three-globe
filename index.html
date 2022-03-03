@@ -467,7 +467,9 @@
           timeElm.setAttribute('data-minutes', pad(seconds));
         }, null, () => {
           this.hide();
-          modal.hide();
+          if(modal) {
+            modal.hide();
+          }
           resetOriginalPosition();
           disableKeyInput();
           showEndingVideo();
