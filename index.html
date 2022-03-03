@@ -117,11 +117,19 @@
     camera.updateProjectionMatrix();
     camera.position.z = 10000;
 
+    function resetOriginalPosition() {
+      scene.rotation.x = 0;
+      scene.rotation.y = 0;
+    }
+
     function showEndingVideo() {
       const video = document.createElement('video');
       video.src = 'video/thevanishingworld.mp4';
       video.width = 1080;
       video.height = 720;
+      video.addEventListener('ended', function() {
+        location.reload();
+      }, false);
       const videoTexture = new THREE.VideoTexture(video);
       video.play();
       const geometry = new THREE.PlaneGeometry( 384, 216 );
@@ -459,6 +467,9 @@
           timeElm.setAttribute('data-minutes', pad(seconds));
         }, null, () => {
           this.hide();
+          modal.hide();
+          resetOriginalPosition();
+          disableKeyInput();
           showEndingVideo();
         });
       }
@@ -689,6 +700,13 @@
 
     if (controller) {
       controller.connect();
+    }
+
+    function disableKeyInput() {
+      document.onkeydown = null;
+      if (controller) {
+        controller.disconnect();
+      }
     }
 
     ///////////////////////////////////////////////
