@@ -77,7 +77,31 @@
               </source>
             </video>
           </div>
-          <p class="description"></p>
+          <div class="description">
+            <ul class="list-data list-stats list-items">
+              <li>
+                <strong class="hdr">Status</strong>
+                <div class="container status">
+                </div>
+              </li>
+              <li>
+                <strong class="hdr">Population</strong>
+                <div class="container population">
+                </div>
+              </li>
+
+              <li>
+                <strong class="hdr">Scientific Name</strong>
+                <div class="container scientific-name">
+                </div>
+              </li>
+              <li>
+                <strong class="hdr">Estimated Extinction Year</strong>
+                <div class="container estimated">
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -205,7 +229,8 @@
 
     generateStarField();
 
-    var VideoModal = function (title = "", description = "", url = "") {
+    var VideoModal = function (title = "", status = "", population = "", 
+      scientificName = "", estimated = "", url = "") {
       this.element = document.getElementById('videoModal');
       this.videoModal = new bootstrap.Modal(this.element, {});
 
@@ -213,8 +238,14 @@
       this.title.innerHTML = title;
 
       this.body = this.element.getElementsByClassName('modal-body')[0];
-      this.description = this.body.getElementsByClassName('description')[0];
-      this.description.innerHTML = description;
+      this.status = this.body.getElementsByClassName('status')[0];
+      this.population = this.body.getElementsByClassName('population')[0];
+      this.scientificName = this.body.getElementsByClassName('scientific-name')[0];
+      this.estimated = this.body.getElementsByClassName('estimated')[0];
+      this.status.innerHTML = status;
+      this.population.innerHTML = population;
+      this.scientificName.innerHTML = scientificName;
+      this.estimated.innerHTML = estimated;
 
       this.video = this.body.getElementsByTagName('video')[0];
       this.source = this.video.getElementsByTagName('source')[0];
@@ -243,8 +274,12 @@
         this.title.innerHTML = title;
       }
 
-      VideoModal.prototype.setBody = function (description) {
-        this.description.innerHTML = description;
+      VideoModal.prototype.setBody = function (status, population, 
+        scientificName, estimated) {
+        this.status.innerHTML = status;
+        this.population.innerHTML = population;
+        this.scientificName.innerHTML = scientificName;
+        this.estimated.innerHTML = estimated;
       }
 
       VideoModal.prototype.setVideoUrl = function (url) {
@@ -575,8 +610,12 @@
       } else if (e.keyCode == '13') {
         // enter key
         if (currentPoint) {
+          const description = currentPoint.__description;
           modal = new VideoModal(currentPoint.__title,
-            currentPoint.__description, currentPoint.__url);
+            description.status,
+            description.population,
+            description.scientificName,
+            description.estimated, currentPoint.__url);
           modal.show();
         }
       }
@@ -691,8 +730,12 @@
             lastGestureTime = new Date().getTime();
             if (currentPoint) {
               if (modal && modal.visible) return;
+              const description = currentPoint.__description;
               modal = new VideoModal(currentPoint.__title,
-                currentPoint.__description, currentPoint.__url);
+                description.status,
+                description.population,
+                description.scientificName,
+                description.estimated, currentPoint.__url);
               modal.show();
             }
           }

@@ -3,6 +3,11 @@ p {
     display: inline;
 }
 
+div.description {
+    display: block;
+    margin: 20 10 10 10;
+}
+
 span {
     display: inline-block;
 }
@@ -46,7 +51,7 @@ span {
 
 #text-container {
     position: absolute;
-    top: 10%;
+    top: 30%;
     color: rgb(255,255,255)
 }
 
