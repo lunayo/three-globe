@@ -369,7 +369,7 @@
         currentPoint = point;
         animateScale(
           { pinScale: currentPoint.children[1].scale.x, glowScale: currentPoint.children[2].scale.x },
-          { pinScale: 2, glowScale: 2.4 }, 800, function (scalar) {
+          { pinScale: 2.6, glowScale: 3 }, 800, function (scalar) {
             if (currentPoint) {
               currentPoint.children[1].scale.setScalar(scalar.pinScale);
               currentPoint.children[2].scale.setScalar(scalar.glowScale);
@@ -574,6 +574,7 @@
           nearestPoint = getNearestPoint('down');
           const sceneRotation = scene.rotation.x;
           rotationFunction = function(angle) {
+            if(sceneRotation - angle < -1.5) return;
             scene.rotation.x = sceneRotation - angle;
           }
         } else if (e.keyCode == '40') {
@@ -582,6 +583,7 @@
           nearestPoint = getNearestPoint('up');
           const sceneRotation = scene.rotation.x;
           rotationFunction = function(angle) {
+            if(sceneRotation + angle > 1.5) return;
             scene.rotation.x = sceneRotation + angle;
           }
         } else if (e.keyCode == '37') {
@@ -702,6 +704,7 @@
                       nearestPoint = getNearestPoint('down');
                       const sceneRotation = scene.rotation.x;
                       rotationFunction = function(angle) {
+                        if(sceneRotation - angle < -1.5) return;
                         scene.rotation.x = sceneRotation - angle;
                       }
                   } else {
@@ -710,6 +713,7 @@
                       nearestPoint = getNearestPoint('up');
                       const sceneRotation = scene.rotation.x;
                       rotationFunction = function(angle) {
+                        if(sceneRotation + angle > 1.5) return;
                         scene.rotation.x = sceneRotation + angle;
                       }
                   }                  
