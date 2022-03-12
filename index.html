@@ -11,6 +11,7 @@
   <link href="stylesheets/pinto.css" rel="stylesheet" type="text/css" />
 
   <script src="//unpkg.com/three"></script>
+  <script src="https://kit.fontawesome.com/f10bde065d.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
   <script src="https://unpkg.com/rxjs@6.6.7/bundles/rxjs.umd.min.js"></script>
   <script src="https://unpkg.com/rxcss@0.10.0/dist/rxcss.min.js"></script>
@@ -80,25 +81,37 @@
           <div class="description">
             <ul class="list-data list-stats list-items">
               <li>
-                <strong class="hdr">Status</strong>
-                <div class="container status">
-                </div>
+                <p>
+                  <i class="fa-solid fa-s fa-fw"></i>
+                  <strong class="hdr">Status</strong>
+                  <div class="container status">
+                  </div>
+                </p>
               </li>
               <li>
-                <strong class="hdr">Population</strong>
-                <div class="container population">
-                </div>
+                <p>
+                  <i class="fa-solid fa-fish fa-fw"></i>
+                  <strong class="hdr">Population</strong>
+                  <div class="container population">
+                  </div>
+                </p>
               </li>
 
               <li>
-                <strong class="hdr">Scientific Name</strong>
-                <div class="container scientific-name">
+                <p>
+                  <i class="fa-solid fa-font fa-fw"></i>
+                  <strong class="hdr">Scientific Name</strong>
+                  <div class="container scientific-name">
+                </p>
                 </div>
               </li>
               <li>
-                <strong class="hdr">Estimated Extinction Year</strong>
-                <div class="container estimated">
-                </div>
+                <p>
+                  <i class="fa-solid fa-calendar-days fa-fw"></i>
+                  <strong class="hdr">Estimated Extinction Year</strong>
+                  <div class="container estimated">
+                  </div>
+                </p>
               </li>
             </ul>
           </div>
@@ -525,7 +538,7 @@
       tween.onUpdate(function () {
         camera.position.z = cameraPosition.z;
       }).onComplete(function () {
-        timer.start();
+        // timer.start();
         currentPoint = getNearestPointToCamera();
         triggerPinFocus(currentPoint);
       });

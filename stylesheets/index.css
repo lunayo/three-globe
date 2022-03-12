@@ -3,6 +3,21 @@ p {
     display: inline;
 }
 
+ul.list-data {
+    padding: 0;
+    list-style-type: none;
+}
+
+ul.list-data li {
+    margin-bottom: 1em;
+}
+
+i.fa-solid {
+    float: left;
+    font-size: 2.3em;
+    margin: 7 16 0 0;
+}
+
 div.description {
     display: block;
     margin: 20 10 10 10;
