@@ -538,7 +538,7 @@
       tween.onUpdate(function () {
         camera.position.z = cameraPosition.z;
       }).onComplete(function () {
-        // timer.start();
+        timer.start();
         currentPoint = getNearestPointToCamera();
         triggerPinFocus(currentPoint);
       });
