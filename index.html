@@ -647,28 +647,20 @@
     var isAnimating = false;
     var lastGestureTime = new Date().getTime();
     controller.on('frame', function(frame) {
-      const prevGestureDuration = new Date().getTime() - lastGestureTime;
-      if(isAnimating || prevGestureDuration < 1000) {
-        swipeGestures = [];
-        return;
-      }
       if(frame.valid && frame.gestures.length > 0) {
+        const prevGestureDuration = new Date().getTime() - lastGestureTime;
         for (var i = 0; i < frame.gestures.length; i++) {
+          if(isAnimating || prevGestureDuration < 1200) {
+            return;
+          }
           var gesture = frame.gestures[i]
           if(gesture.type == "swipe") {
             console.log("swipe")
-            if(gesture.state == "start") {
-              swipeGestures = []
-              swipeGestures.push(gesture)
-            }
-            if(gesture.state == "update") {
-              swipeGestures.push(gesture)
-            }
-            if(gesture.state == "stop" && swipeGestures.length > 0)  {
+            if(gesture.state == "stop")  {
+              lastGestureTime = new Date().getTime();
               if (modal) {
                 modal.hide();
               }
-              lastGestureTime = new Date().getTime();
               triggerPinUnfocus();
               isAnimating = true;
               var nearestPoint;
@@ -739,21 +731,25 @@
                 isAnimating = false;
               });
               console.log(swipeDirection)
-              swipeGestures = []
             }
           }
-          else if (gesture.type === 'keyTap') {
+          else if (gesture.type === 'keyTap' || gesture.type === "screenTap") {
             console.log("keyTap");
             lastGestureTime = new Date().getTime();
-            if (currentPoint) {
-              if (modal && modal.visible) return;
-              const description = currentPoint.__description;
-              modal = new VideoModal(currentPoint.__title,
-                description.status,
-                description.population,
-                description.scientificName,
-                description.estimated, currentPoint.__url);
-              modal.show();
+            const startButton = document.getElementsByClassName("enterButton")[0];
+            if (startButton.style.display !== 'none') {
+              startAnimation();
+            } else {
+              if (currentPoint) {
+                if (modal && modal.visible) return;
+                const description = currentPoint.__description;
+                modal = new VideoModal(currentPoint.__title,
+                  description.status,
+                  description.population,
+                  description.scientificName,
+                  description.estimated, currentPoint.__url);
+                modal.show();
+              }
             }
           }
         }
