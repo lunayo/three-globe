@@ -73,7 +73,7 @@ span {
 .fade-in-text {
     /* display: block; */
     font-family: "Pinto W00 NO_01","Trebuchet MS",Helvetica,sans-serif;
-    font-size: 1.5em;
+    font-size: 2vw;
     color: white;
     margin: 10;
     opacity: 0;
