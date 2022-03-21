@@ -174,7 +174,9 @@
       video.width = 1080;
       video.height = 720;
       video.addEventListener('ended', function() {
-        location.reload();
+        setTimeout(function(){
+          location.reload();
+        }, 2000);
       }, false);
       const videoTexture = new THREE.VideoTexture(video);
       video.play();
