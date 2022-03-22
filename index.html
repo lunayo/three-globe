@@ -168,6 +168,11 @@
       scene.rotation.y = 0;
     }
 
+    function initializeEarthPosition() {
+      scene.rotation.x = 0.2;
+      scene.rotation.y = -1.5;
+    }
+
     function showEndingVideo() {
       const video = document.createElement('video');
       video.src = 'video/thevanishingworld.mp4';
@@ -375,7 +380,7 @@
     }
 
     var currentPoint;
-    function triggerPinFocus(point) {
+    function triggerPinFocus(point, shouldTriggerModal=false) {
       if (point) {
         currentPoint = point;
         animateScale(
@@ -385,7 +390,22 @@
               currentPoint.children[1].scale.setScalar(scalar.pinScale);
               currentPoint.children[2].scale.setScalar(scalar.glowScale);
             }
+          }, function() {
+            if (shouldTriggerModal) showModal();
           });
+      }
+    }
+
+    function showModal() {
+      if (currentPoint) {
+        if (modal && modal.visible) return;
+        const description = currentPoint.__description;
+        modal = new VideoModal(currentPoint.__title,
+          description.status,
+          description.population,
+          description.scientificName,
+          description.estimated, currentPoint.__url);
+        modal.show();
       }
     }
 
@@ -556,6 +576,7 @@
     }
 
     function startAnimation() {
+      initializeEarthPosition();
       const startButton = document.getElementsByClassName("enterButton")[0];
       startButton.style.display = 'none';
       startTextAnimation();
@@ -626,24 +647,20 @@
         animatePosition(angle, 500, function (angle) {
           rotationFunction(angle);
         }, function () {
+          const previousPoint = currentPoint;
           if(!nearestPoint) {
             currentPoint = getNearestPointToCamera();  
           } else {
             currentPoint = nearestPoint;
           }
-          triggerPinFocus(currentPoint);
+          const shouldTriggerModal = 
+            !previousPoint || !currentPoint ||
+            (previousPoint && currentPoint && previousPoint.__title !== currentPoint.__title);
+          triggerPinFocus(currentPoint, shouldTriggerModal);
         });
       } else if (e.keyCode == '13') {
         // enter key
-        if (currentPoint) {
-          const description = currentPoint.__description;
-          modal = new VideoModal(currentPoint.__title,
-            description.status,
-            description.population,
-            description.scientificName,
-            description.estimated, currentPoint.__url);
-          modal.show();
-        }
+        showModal();
       }
     }
 
@@ -751,16 +768,7 @@
             if (startButton.style.display !== 'none') {
               startAnimation();
             } else {
-              if (currentPoint) {
-                if (modal && modal.visible) return;
-                const description = currentPoint.__description;
-                modal = new VideoModal(currentPoint.__title,
-                  description.status,
-                  description.population,
-                  description.scientificName,
-                  description.estimated, currentPoint.__url);
-                modal.show();
-              }
+              showModal();
             }
           }
         }
