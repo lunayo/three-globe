@@ -475,8 +475,8 @@
       timeElm.style.display = 'none';
 
       // 3 minutes countdown
-      const totalTime = 10800;
-      const threshold = (totalTime - 2400) / data.length;
+      const totalTime = 3600;
+      const threshold = (totalTime - 600) / data.length;
       var seconds = totalTime;
       var currentThreshold = threshold;
       var opacity = 1.0;
@@ -504,7 +504,7 @@
         const { Observable } = rxjs;
         const observable = new Observable(function subscribe(subscriber) {
           const id = setInterval(() => {
-            opacity -= 1.0 / 180;
+            opacity -= 1.0 / 60;
             setGroupOpacity(scene.children[0], opacity);
             if (seconds < totalTime - currentThreshold) {
               randomRemovePinObject();
