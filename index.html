@@ -184,7 +184,12 @@
         }, 2000);
       }, false);
       const videoTexture = new THREE.VideoTexture(video);
-      video.play();
+      try {
+        video.play();
+      } catch(error) {
+        video.muted = true;
+        video.play();
+      }
       const geometry = new THREE.PlaneGeometry( 384, 216 );
       const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
       const videoMesh = new THREE.Mesh(geometry, videoMaterial);
@@ -597,6 +602,11 @@
       }
       if (e.keyCode >= 37 && e.keyCode <= 40) {
         triggerPinUnfocus();
+        const startButton = document.getElementsByClassName("enterButton")[0];
+        if (startButton.style.display !== 'none') {
+          startAnimation();
+          return;
+        } 
         var nearestPoint;
         var angle;
         var rotationFunction;
@@ -690,6 +700,13 @@
                 modal.hide();
               }
               triggerPinUnfocus();
+
+              const startButton = document.getElementsByClassName("enterButton")[0];
+              if (startButton.style.display !== 'none') {
+                startAnimation();
+                return;
+              } 
+
               isAnimating = true;
               var nearestPoint;
               var angle;
