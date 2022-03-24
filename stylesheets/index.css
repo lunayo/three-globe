@@ -27,6 +27,14 @@ span {
     display: inline-block;
 }
 
+.instruction-text {
+    position: absolute;
+    font-family: "Pinto W00 NO_01","Trebuchet MS",Helvetica,sans-serif;
+    font-size: max(min(2.2vw, 36px), 25px);
+    color: white;
+    top: 33%;
+}
+
 .enterButton {
     position: absolute;
     background-color: rgb(24, 26, 27);

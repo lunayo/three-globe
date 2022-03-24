@@ -128,6 +128,7 @@
       </div>
     </div>
   </div>
+  <p class="instruction-text">Swipe to start</p>
   <div id="text-container">
     <p class="fade-in-text" style="animation-delay: 1.5s">Biological diversity is messy. <span class="fade-in-text" style="animation-delay: 3s">It walks, it crawls, it swims, it swoops, it buzzes.</span></p>
     <p class="fade-in-text" style="animation-delay: 5.5s">But extinction is silent, <span class="fade-in-text" style="animation-delay: 7s"> and it has no voice other than our own.</span></p>
@@ -584,6 +585,8 @@
       initializeEarthPosition();
       const startButton = document.getElementsByClassName("enterButton")[0];
       startButton.style.display = 'none';
+      const instructionText = document.getElementsByClassName("instruction-text")[0];
+      instructionText.style.display = 'none';
       startTextAnimation();
       setTimeout(function() {
         stopTextAnimation();
