@@ -188,6 +188,7 @@
       try {
         video.play();
       } catch(error) {
+        console.log(error);
         video.muted = true;
         video.play();
       }
@@ -323,9 +324,14 @@
     }
 
     document.onkeydown = checkKey;
-    function animatePosition(targetAngle, speed, onUpdate, onComplete) {
+    function animatePosition(targetAngle, speed, onUpdate, onComplete, onStart=null) {
       let position = { angle: 0.0 };
       let tween = new TWEEN.Tween(position)
+        .onStart(function() {
+          if(onStart) {
+            onStart();
+          }
+        })
         .easing(TWEEN.Easing.Cubic.InOut)
         .to({ angle: targetAngle }, speed)
         .start();
@@ -385,6 +391,19 @@
       return curr;
     }
 
+    var timeoutHandle;
+    function setCustomTimeout(fn, timeout) {
+      clearCustomTimeout();
+      timeoutHandle = setTimeout(fn, timeout);
+    }
+
+    function clearCustomTimeout() {
+      if(timeoutHandle) {
+          clearTimeout(timeoutHandle);
+          timeoutHandle = null;
+      }
+    }
+
     var currentPoint;
     function triggerPinFocus(point, shouldTriggerModal=false) {
       if (point) {
@@ -397,9 +416,47 @@
               currentPoint.children[2].scale.setScalar(scalar.glowScale);
             }
           }, function() {
-            if (shouldTriggerModal) showModal();
+            if (shouldTriggerModal) {
+              if(currentPoint && point && currentPoint.__title === point.__title) {
+                showModal();
+              }
+            }
           });
+      } else {
+        // auto move to nearest point after some duration
+        setCustomTimeout(function() {
+            if(!currentPoint) {
+              autoNavigateToNearestPoint();
+            }
+        }, 3000);
       }
+    }
+
+    function autoNavigateToNearestPoint() {
+      const points = getPinPoints();
+      const nearestPoint = getNearestPoint(points, camera.position);
+      if(!nearestPoint) return;
+      let nearest = new THREE.Vector3();
+      nearestPoint.getWorldPosition(nearest);
+      const currentX = new THREE.Vector3(0, nearest.y, nearest.z);
+      const currentY = new THREE.Vector3(nearest.x, 0, nearest.z);
+      const angleX = currentX.angleTo(nearest);
+      const angleY = currentY.angleTo(nearest);
+      const directionX = (nearest.x - currentX.x) < 0 ? 1 : -1;
+      const directionY = (nearest.y - currentY.y) < 0 ? -1 : 1;
+      const sceneRotationX = scene.rotation.x;
+      const sceneRotationY = scene.rotation.y;
+      animatePosition(angleY, 500, function (angle) {
+        scene.rotation.x = sceneRotationX + angle * directionY;
+      }, null, function() {
+        animatePosition(angleX, 500, function (angle) {
+          scene.rotation.y = sceneRotationY + angle * directionX;
+        }, function() {
+          // oncompleted
+          currentPoint = getNearestPointToCamera();
+          triggerPinFocus(currentPoint);
+        });
+      });
     }
 
     function showModal() {
@@ -415,7 +472,7 @@
       }
     }
 
-    function getNearestPoint(direction) {
+    function getNearestPointFromDirection(direction) {
       if(currentPoint == null) return null;
       const points = getPinPoints();
       var center = new THREE.Vector3();
@@ -439,16 +496,20 @@
         return point.__title !== currentPoint.__title &&
           filterFunction(target, center) && distance < distanceThreshold;
       });
-      
+
+      return getNearestPoint(filteredPoints, center);
+    }
+
+    function getNearestPoint(points, center) {
       var candidatePoint = null;
       var currentDistance = Number.MAX_SAFE_INTEGER;
-      for(var i=0;i<filteredPoints.length;++i) {
+      for(var i=0;i<points.length;++i) {
         var target = new THREE.Vector3();
-        filteredPoints[i].getWorldPosition(target);
+        points[i].getWorldPosition(target);
         const distance = center.distanceTo(target);
         if(distance < currentDistance) {
           currentDistance = distance;
-          candidatePoint = filteredPoints[i];
+          candidatePoint = points[i];
         }
       }
       return candidatePoint;
@@ -603,6 +664,7 @@
       if (modal) {
         modal.hide();
       }
+      clearCustomTimeout();
       if (e.keyCode >= 37 && e.keyCode <= 40) {
         triggerPinUnfocus();
         const startButton = document.getElementsByClassName("enterButton")[0];
@@ -612,11 +674,13 @@
         } 
         var nearestPoint;
         var angle;
+        var direction;
         var rotationFunction;
         if (e.keyCode == '38') {
           // up arrow
           angle = 0.3;
-          nearestPoint = getNearestPoint('down');
+          direction = 'down';
+          nearestPoint = getNearestPointFromDirection(direction);
           const sceneRotation = scene.rotation.x;
           rotationFunction = function(angle) {
             if(sceneRotation - angle < -1.5) return;
@@ -625,7 +689,8 @@
         } else if (e.keyCode == '40') {
           // down arrow
           angle = 0.3;
-          nearestPoint = getNearestPoint('up');
+          direction = 'up';
+          nearestPoint = getNearestPointFromDirection(direction);
           const sceneRotation = scene.rotation.x;
           rotationFunction = function(angle) {
             if(sceneRotation + angle > 1.5) return;
@@ -634,7 +699,8 @@
         } else if (e.keyCode == '37') {
           // left arrow
           angle = 0.5;
-          nearestPoint = getNearestPoint('right');
+          direction = 'right';
+          nearestPoint = getNearestPointFromDirection(direction);
           const sceneRotation = scene.rotation.y;
           rotationFunction = function(angle) {
             scene.rotation.y = sceneRotation - angle;
@@ -642,7 +708,8 @@
         } else if (e.keyCode == '39') {
           // right arrow
           angle = 0.5;
-          nearestPoint = getNearestPoint('left');
+          direction = 'left';
+          nearestPoint = getNearestPointFromDirection(direction);
           const sceneRotation = scene.rotation.y;
           rotationFunction = function(angle) {
             scene.rotation.y = sceneRotation + angle;
@@ -654,7 +721,11 @@
           var current = new THREE.Vector3();
           currentPoint.getWorldPosition(current);
           nearest = new THREE.Vector3(nearest.x, nearest.y, nearest.z);
-          current = new THREE.Vector3(0, nearest.y, nearest.z);
+          if(direction === 'left' || direction === 'right') {
+            current = new THREE.Vector3(0, nearest.y, nearest.z);
+          } else {
+            current = new THREE.Vector3(nearest.x, 0, nearest.z);
+          }
           angle = current.angleTo(nearest);
         }
         animatePosition(angle, 500, function (angle) {
@@ -702,6 +773,7 @@
               if (modal) {
                 modal.hide();
               }
+              clearCustomTimeout();
               triggerPinUnfocus();
 
               const startButton = document.getElementsByClassName("enterButton")[0];
@@ -714,6 +786,7 @@
               var nearestPoint;
               var angle;
               var rotationFunction;
+              var direction;
               // averageSpeed = swipeGestures.reduce((acc, c) => acc + c.speed, 0.0) / swipeGestures.length
               // console.log(`average speed: ${averageSpeed}`)
               //Classify swipe as either horizontal or vertical
@@ -722,16 +795,18 @@
               if(isHorizontal){
                   if(gesture.direction[0] > 0){
                       swipeDirection = "right"
+                      direction = 'down';
                       angle = 0.5;
-                      nearestPoint = getNearestPoint('left');
+                      nearestPoint = getNearestPointFromDirection(direction);
                       const sceneRotation = scene.rotation.y;
                       rotationFunction = function(angle) {
                         scene.rotation.y = sceneRotation + angle;
                       }
                   } else {
                       swipeDirection = "left"
+                      direction = 'up';
                       angle = 0.5;
-                      nearestPoint = getNearestPoint('right');
+                      nearestPoint = getNearestPointFromDirection(direction);
                       const sceneRotation = scene.rotation.y;
                       rotationFunction = function(angle) {
                         scene.rotation.y = sceneRotation - angle;
@@ -740,8 +815,9 @@
               } else { //vertical
                   if(gesture.direction[1] > 0){
                       swipeDirection = "up"
+                      direction = 'right';
                       angle = 0.3;
-                      nearestPoint = getNearestPoint('down');
+                      nearestPoint = getNearestPointFromDirection(direction);
                       const sceneRotation = scene.rotation.x;
                       rotationFunction = function(angle) {
                         if(sceneRotation - angle < -1.5) return;
@@ -749,8 +825,9 @@
                       }
                   } else {
                       swipeDirection = "down"
+                      direction = 'left';
                       angle = 0.3;
-                      nearestPoint = getNearestPoint('up');
+                      nearestPoint = getNearestPointFromDirection(direction);
                       const sceneRotation = scene.rotation.x;
                       rotationFunction = function(angle) {
                         if(sceneRotation + angle > 1.5) return;
@@ -764,7 +841,11 @@
                 var current = new THREE.Vector3();
                 currentPoint.getWorldPosition(current);
                 nearest = new THREE.Vector3(nearest.x, nearest.y, nearest.z);
-                current = new THREE.Vector3(0, nearest.y, nearest.z);
+                if(direction === 'left' || direction === 'right') {
+                  current = new THREE.Vector3(0, nearest.y, nearest.z);
+                } else {
+                  current = new THREE.Vector3(nearest.x, 0, nearest.z);
+                }
                 angle = current.angleTo(nearest);
               }
               animatePosition(angle, 500, function (angle) {
