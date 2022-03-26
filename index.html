@@ -418,7 +418,9 @@
           }, function() {
             if (shouldTriggerModal) {
               if(currentPoint && point && currentPoint.__title === point.__title) {
-                showModal();
+                setCustomTimeout(
+                  showModal(), 300
+                );
               }
             }
           });
@@ -454,7 +456,7 @@
         }, function() {
           // oncompleted
           currentPoint = getNearestPointToCamera();
-          triggerPinFocus(currentPoint);
+          triggerPinFocus(currentPoint, true);
         });
       });
     }
@@ -856,7 +858,10 @@
                 } else {
                   currentPoint = nearestPoint;
                 }
-                triggerPinFocus(currentPoint)
+                const shouldTriggerModal = 
+                  !previousPoint || !currentPoint ||
+                  (previousPoint && currentPoint && previousPoint.__title !== currentPoint.__title);
+                triggerPinFocus(currentPoint, shouldTriggerModal);
                 isAnimating = false;
               });
               console.log(swipeDirection)
