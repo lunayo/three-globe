@@ -853,6 +853,7 @@
               animatePosition(angle, 500, function (angle) {
                 rotationFunction(angle);
               }, function () {
+                const previousPoint = currentPoint;
                 if(!nearestPoint) {
                   currentPoint = getNearestPointToCamera();  
                 } else {
