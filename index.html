@@ -73,6 +73,7 @@
       <div class="line"></div>
     </div>
   </div>
+  <p class="time-instruction">Animal is disappearing</p>
   <div id="globeViz"></div>
   <div id="videoModal" class="modal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
@@ -82,7 +83,7 @@
         </div>
         <div class="modal-body">
           <div class="embed-responsive embed-responsive-16by9">
-            <video controls loop style="width: 100%;height: auto;">
+            <video loop style="width: 100%;height: auto;">
               <source src="" type="video/mp4">
               </source>
             </video>
@@ -573,12 +574,14 @@
     const Timer = function () {
       // Clock
       const timeElm = document.getElementById('time');
+      const timeInstructionText = document.getElementsByClassName('time-instruction')[0];
       const doc = document.documentElement;
       const { clientWidth, clientHeight } = doc;
 
       const pad = (val) => val < 10 ? `0${val}` : val;
 
       timeElm.style.display = 'none';
+      timeInstructionText.style.display = 'none';
 
       // 3 minutes countdown
       const totalTime = 3600;
@@ -599,6 +602,7 @@
 
       Timer.prototype.hide = function () {
         timeElm.style.display = 'none';
+        timeInstructionText.style.display = 'none';
       }
 
       Timer.prototype.show = function () {
@@ -621,6 +625,12 @@
               minutes: Math.floor(seconds / 3600),
               seconds: (seconds % 3600) / 60,
             };
+            if (obj.seconds == 59) {
+              timeInstructionText.style.display = 'flex';
+              timeInstructionText.innerHTML = 'Animal is disappearing...';
+            } else if (obj.seconds == 20) {
+              timeInstructionText.innerHTML = 'Time is running out...';
+            }
             if (obj.minutes == 0 && obj.seconds == 0) {
               subscriber.complete();
             } else {
