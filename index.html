@@ -186,6 +186,7 @@
       }, false);
       const videoTexture = new THREE.VideoTexture(video);
       try {
+        video.load();
         video.play();
       } catch(error) {
         console.log(error);
@@ -286,6 +287,8 @@
       this.video = this.body.getElementsByTagName('video')[0];
       this.source = this.video.getElementsByTagName('source')[0];
       this.source.setAttribute('src', url);
+      this.video.muted = true;
+      this.video.autoplay = true;
 
       this.visible = this.element.classList.contains('show');
 
