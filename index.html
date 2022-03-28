@@ -445,8 +445,7 @@
           modal.hide()
         }
         const points = getPinPoints().filter(p => 
-          p.__title !== currentPoint.__title 
-          // && p.__title !== 'Polar bear'
+          p.__title !== currentPoint.__title
         );
         const randomIndex = Math.floor(Math.random() * points.length);
         autoNavigateToPoint(points[randomIndex]);
@@ -456,28 +455,22 @@
     function autoNavigateToPoint(point) {
       triggerPinUnfocus();
       if(!point) return;
-      let nearest = new THREE.Vector3();
-      point.getWorldPosition(nearest);
-      const currentX = new THREE.Vector3(0, nearest.y, nearest.z);
-      const currentY = new THREE.Vector3(nearest.x, 0, nearest.z);
-      const angleX = currentX.angleTo(nearest);
-      const angleY = currentY.angleTo(nearest);
-      const directionX = (nearest.x < currentX.x) ? 1 : -1;
-      const directionY = (nearest.y < currentY.y) ? -1 : 1;
       const sceneRotationX = scene.rotation.x;
       const sceneRotationY = scene.rotation.y;
-      animatePosition(angleY, 500, function (angle) {
-        if(sceneRotationX + angle * directionY < -1.5 || sceneRotationX + angle * directionY > 1.5) return;
-        scene.rotation.x = sceneRotationX + angle * directionY;
-      }, null, function() {
-        animatePosition(angleX, 500, function (angle) {
-          scene.rotation.y = sceneRotationY + angle * directionX;
-        }, function() {
-          // oncompleted
-          currentPoint = getNearestPointToCamera();
-          triggerPinFocus(currentPoint, true);
-        });
-      }, null);
+      var verticalOffset = 0.1;
+      const angleX = point.__lat * ( Math.PI / 180 ) - verticalOffset;
+      const angleY = (( 270 - point.__long ) * ( Math.PI / 180 )) + 1.57;
+
+      const tween = new TWEEN.Tween(scene.rotation)
+      .to({ x: angleX, y: angleY }, 500)
+      .easing(TWEEN.Easing.Cubic.InOut)
+      .start();
+
+      tween.onComplete(function() {
+        // oncompleted
+        currentPoint = getNearestPointToCamera();
+        triggerPinFocus(currentPoint, true);
+      });
     }
 
     function autoNavigateToNearestPoint() {

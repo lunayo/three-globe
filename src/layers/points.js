@@ -218,6 +218,8 @@ export default Kapsule({
       obj.__globeObjType = 'point'; // Add object type
       obj.__title = titleAccessor(d);
       obj.__description = descriptionAccessor(d);
+      obj.__lat = latAccessor(d);
+      obj.__long = lngAccessor(d);
       obj.__url = urlAccessor(d);
       return obj;
     }
