@@ -326,6 +326,10 @@
         this.source.setAttribute('src', url);
       }
     }
+    var timeoutHandle;
+    var currentPoint;
+    var visitedPoints = new Set();
+    var modal;
 
     document.onkeydown = checkKey;
     function animatePosition(targetAngle, speed, onUpdate, onComplete, onStart=null) {
@@ -395,7 +399,6 @@
       return curr;
     }
 
-    var timeoutHandle;
     function setCustomTimeout(fn, timeout) {
       clearCustomTimeout();
       timeoutHandle = setTimeout(fn, timeout);
@@ -408,7 +411,6 @@
       }
     }
 
-    var currentPoint;
     function triggerPinFocus(point, shouldTriggerModal=false) {
       if (point) {
         currentPoint = point;
@@ -446,10 +448,13 @@
         }
         const points = getPinPoints().filter(p => 
           p.__title !== currentPoint.__title
+          && !visitedPoints.has(p.__title)
         );
+        console.log(visitedPoints);
         const randomIndex = Math.floor(Math.random() * points.length);
-        autoNavigateToPoint(points[randomIndex]);
-      }, 5000);
+        const point = points[randomIndex];
+        autoNavigateToPoint(point);
+      }, 4000);
     }
 
     function autoNavigateToPoint(point) {
@@ -481,6 +486,7 @@
 
     function showModal() {
       if (currentPoint) {
+        visitedPoints.add(currentPoint.__title);
         if (modal && modal.visible) return;
         const description = currentPoint.__description;
         modal = new VideoModal(currentPoint.__title,
@@ -686,7 +692,6 @@
 
     ///////////////////////////////////////////////
     // Keyboard navigation
-    var modal;
     function checkKey(e) {
       e = e || window.event;
       const currentPosition = { ...camera.position };
