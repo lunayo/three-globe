@@ -424,14 +424,7 @@
               if(currentPoint && point && currentPoint.__title === point.__title) {
                 setCustomTimeout(function() {
                   showModal()
-                  setCustomTimeout(function() {
-                    if(modal) {
-                      modal.hide()
-                    }
-                    const points = getPinPoints().filter(p => p.__title !== currentPoint.__title);
-                    const randomIndex = Math.floor(Math.random() * points.length);
-                    autoNavigateToPoint(points[randomIndex]);
-                  }, 6000);
+                  triggerAutoNavigationTimer()
                 }, 300);
               }
             }
@@ -444,6 +437,20 @@
             }
         }, 3000);
       }
+    }
+
+    function triggerAutoNavigationTimer() {
+      setCustomTimeout(function() {
+        if(modal) {
+          modal.hide()
+        }
+        const points = getPinPoints().filter(p => 
+          p.__title !== currentPoint.__title 
+          // && p.__title !== 'Polar bear'
+        );
+        const randomIndex = Math.floor(Math.random() * points.length);
+        autoNavigateToPoint(points[randomIndex]);
+      }, 5000);
     }
 
     function autoNavigateToPoint(point) {
@@ -774,6 +781,7 @@
       } else if (e.keyCode == '13') {
         // enter key
         showModal();
+        triggerAutoNavigationTimer();
       }
     }
 
@@ -903,6 +911,7 @@
               startAnimation();
             } else {
               showModal();
+              triggerAutoNavigationTimer();
             }
           }
         }
