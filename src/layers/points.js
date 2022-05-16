@@ -208,11 +208,13 @@ export default Kapsule({
       const geometry = new THREE.SphereGeometry( 4, 32, 16 );
       const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
       const pin = new THREE.Mesh(geometry, videoMaterial);
+      pin.__title = titleAccessor(d);
       obj.add(pin);
 
       // glow
       var pinGlow = new THREE.Mesh( geometry.clone(), customMaterial.clone() );
       pinGlow.scale.multiplyScalar(1.2);
+      pinGlow.__title = titleAccessor(d);
       obj.add(pinGlow);
 
       obj.__globeObjType = 'point'; // Add object type

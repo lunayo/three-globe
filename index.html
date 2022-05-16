@@ -17,7 +17,7 @@
   <script src="https://unpkg.com/rxcss@0.10.0/dist/rxcss.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leapjs/0.6.1/leap.min.js"></script>
-  <!-- <script src="//unpkg.com/three/examples/js/controls/TrackballControls.js"></script> -->
+  <script src="//unpkg.com/three/examples/js/controls/TrackballControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
     crossorigin="anonymous"></script>
@@ -165,9 +165,44 @@
     camera.updateProjectionMatrix();
     camera.position.z = 10000;
 
+    const tbControls = new THREE.TrackballControls(camera, renderer.domElement);
+    tbControls.enabled = false;
+    tbControls.minDistance = 101;
+    tbControls.rotateSpeed = 5;
+    tbControls.noPan = true;
+    tbControls.noZoom = true;
+
+    function setupRayCasting() {
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      const points = getPinPoints();
+      const meshes = points.map(p => p.children[2]);
+      function onMouseClick( event ) {
+          raycaster.setFromCamera( mouse, camera );
+          meshes.forEach(targetMesh => {
+            let intersected = raycaster.intersectObject( targetMesh );
+            if (intersected.length > 0) {
+              const point = points.find(p => p.__title === intersected[0].object.__title);
+              currentPoint = point;
+              if(modal) modal.hide();
+              showModal();
+            }
+          });
+      }
+      function onMouseMove( event ) {
+          mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+          mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+      }
+      window.addEventListener( 'mousedown', onMouseClick, false );
+      window.addEventListener( 'mousemove', onMouseMove, false );
+    }
+
     function resetOriginalPosition() {
       scene.rotation.x = 0;
       scene.rotation.y = 0;
+      tbControls.enabled = false;
+      tbControls.object.position.set(tbControls.position0.x, tbControls.position0.y, 280);
+      tbControls.object.up.set(tbControls.up0.x, tbControls.up0.y, tbControls.up0.z);
     }
 
     function initializeEarthPosition() {
@@ -326,6 +361,7 @@
         this.source.setAttribute('src', url);
       }
     }
+    var cameraOriginal;
     var timeoutHandle;
     var modalTimeout;
     var currentPoint;
@@ -570,7 +606,7 @@
 
     function stopTextAnimation() {
       const textContainer = document.getElementById('text-container');
-      textContainer.style.display = 'block';
+      textContainer.style.display = 'none';
       const elements = textContainer.getElementsByClassName('fade-in-text');
       for(const element of elements) {
         element.style.opacity = 1;
@@ -675,9 +711,17 @@
       tween.onUpdate(function () {
         camera.position.z = cameraPosition.z;
       }).onComplete(function () {
+        cameraOriginal = {
+          position: camera.position.clone(),
+          rotation: camera.rotation.clone()
+        };
+        tbControls.enabled = true;
+        setupRayCasting();
         timer.start();
         currentPoint = getNearestPointToCamera();
-        triggerPinFocus(currentPoint);
+        if(controller && controller.connected()) {
+          triggerPinFocus(currentPoint);
+        }
       });
     }
 
@@ -933,16 +977,10 @@
 
     ///////////////////////////////////////////////
 
-    // // Add camera controls
-    // const tbControls = new THREE.TrackballControls(camera, renderer.domElement);
-    // tbControls.minDistance = 101;
-    // tbControls.rotateSpeed = 5;
-    // tbControls.zoomSpeed = 0.8;
-
     // Kick-off renderer
     (function animate() { // IIFE
       // Frame cycle
-      // tbControls.update();
+      tbControls.update();
       TWEEN.update();
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
