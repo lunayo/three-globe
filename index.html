@@ -367,6 +367,7 @@
     var currentPoint;
     var visitedPoints = new Set();
     var modal;
+    var debug = true;
 
     document.onkeydown = checkKey;
     function animatePosition(targetAngle, speed, onUpdate, onComplete, onStart=null) {
@@ -671,6 +672,7 @@
               minutes: Math.floor(seconds / 3600),
               seconds: (seconds % 3600) / 60,
             };
+            Globe.transition(Math.min(1.0, (1 - opacity) * 2.5));
             if (obj.seconds == 59) {
               timeInstructionText.style.display = 'flex';
               timeInstructionText.innerHTML = 'Animal is disappearing...';
@@ -717,7 +719,9 @@
         };
         tbControls.enabled = true;
         setupRayCasting();
-        timer.start();
+        if(!debug) {
+          timer.start();
+        }
         currentPoint = getNearestPointToCamera();
         if(controller && controller.connected()) {
           triggerPinFocus(currentPoint);
@@ -731,11 +735,16 @@
       startButton.style.display = 'none';
       const instructionText = document.getElementsByClassName("instruction-text")[0];
       instructionText.style.display = 'none';
-      startTextAnimation();
-      setTimeout(function() {
+      if (!debug) {
+        startTextAnimation();
+        setTimeout(function() {
+          stopTextAnimation();
+          zoomToEarth();
+        }, 11000);
+      } else {
         stopTextAnimation();
         zoomToEarth();
-      }, 11000);
+      }
     }
 
     ///////////////////////////////////////////////

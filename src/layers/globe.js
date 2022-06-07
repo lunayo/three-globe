@@ -29,8 +29,6 @@ import { geoGraticule10 } from 'd3-geo';
 import { emptyObject } from '../utils/gc';
 import { GLOBE_RADIUS } from '../constants';
 
-//
-
 export default Kapsule({
   props: {
     globeImageUrl: {},
@@ -40,6 +38,7 @@ export default Kapsule({
     showAtmosphere: { default: true, onChange(showAtmosphere, state) { state.atmosphereObj && (state.atmosphereObj.visible = !!showAtmosphere) }, triggerUpdate: false },
     atmosphereColor: { default: 'lightskyblue' },
     atmosphereAltitude: { default: 0.15 },
+    transition: { default: 0.0 },
     onReady: { default: () => {}, triggerUpdate: false }
   },
   methods: {
@@ -83,6 +82,56 @@ export default Kapsule({
     state.scene.add(state.globeObj); // add globe
     state.scene.add(state.graticulesObj); // add graticules
 
+    const globeMaterial = state.globeObj.material;
+    globeMaterial.onBeforeCompile = function ( shader ) {
+      shader.uniforms.change = { value: state.transition };
+      shader.fragmentShader = 'uniform float change;\n' + shader.fragmentShader;
+      shader.fragmentShader = shader.fragmentShader.replace(/void main\(\) {/, (match) => `
+      vec3 rgb2hsv(vec3 c)
+      {
+          vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+          vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+          vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+          float d = q.x - min(q.w, q.y);
+          float e = 1.0e-10;
+          return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+      }
+
+      vec3 blendMultiply(vec3 base, vec3 blend) {
+        return base*blend;
+      }
+      
+      vec3 blendMultiply(vec3 base, vec3 blend, float opacity) {
+        return (blendMultiply(base, blend) * opacity + base * (1.0 - opacity));
+      }
+      ` + match)
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <dithering_fragment>',
+        `
+          vec3 hsv = rgb2hsv(gl_FragColor.rgb);
+          vec3 finalColor = gl_FragColor.rgb;
+          vec3 darkRedColor = vec3(0.700,0.268,0.119);
+          vec3 brownColor = vec3(0.760,0.588,0.216);
+          vec3 darkBrownColor = vec3(0.330,0.259,0.025);
+          vec3 lightBrownColor = vec3(0.985,0.777,0.072);
+          vec3 orangeColor = vec3(0.985,0.483,0.001);
+          if(hsv.x >= 0.125 && hsv.x <= 0.46) {
+            // greenery
+            finalColor = blendMultiply(finalColor, darkBrownColor, change);
+          } else if (hsv.x < 0.125) {
+            finalColor = blendMultiply(finalColor, brownColor, change);
+          } else if (hsv.x >= 0.5 && hsv.x <= 0.75) {
+            // ocean
+            finalColor = blendMultiply(finalColor, orangeColor, change);
+          } else {
+            finalColor = blendMultiply(finalColor, darkRedColor, change);
+          }
+          gl_FragColor = vec4(finalColor, gl_FragColor.a);
+        `
+      );
+      globeMaterial.userData.shader = shader;
+    };
+
     state.ready = false;
   },
 
@@ -115,6 +164,14 @@ export default Kapsule({
           globeMaterial.needsUpdate = true;
         });
       }
+    }
+
+    if (changedProps.hasOwnProperty('transition')) {
+      const shader = globeMaterial.userData.shader;
+      if(shader) {
+        shader.uniforms.change.value = state.transition;
+      }
+      globeMaterial.needsUpdate = true;
     }
 
     if (changedProps.hasOwnProperty('atmosphereColor') || changedProps.hasOwnProperty('atmosphereAltitude')) {

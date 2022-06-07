@@ -22,6 +22,10 @@ export interface ConfigOptions {
 export declare class ThreeGlobeGeneric<ChainableInstance> extends Object3D {
   constructor(configOptions?: ConfigOptions);
 
+  // Transition layer
+  transition(): number | null;
+  transition(value: number): ChainableInstance;
+
   // Globe layer
   globeImageUrl(): string | null;
   globeImageUrl(url: string): ChainableInstance;
