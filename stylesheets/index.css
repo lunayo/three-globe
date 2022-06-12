@@ -88,6 +88,17 @@ span {
     color: rgb(255,255,255)
 }
 
+#ending-text-container {
+    position: absolute;
+    top: 30%;
+    color: rgb(255,255,255);
+    text-align: center;
+}
+
+#ending-text-container p {
+    line-height: 2;
+}
+
 .fade-in-text {
     /* display: block; */
     font-family: "Pinto W00 NO_01","Trebuchet MS",Helvetica,sans-serif;

@@ -135,6 +135,12 @@
     <p class="fade-in-text" style="animation-delay: 5.5s">But extinction is silent, <span class="fade-in-text" style="animation-delay: 7s"> and it has no voice other than our own.</span></p>
     <p class="fade-in-text author" style="animation-delay: 9s">— Paul Hawken</p>
   </div>
+  <div id="ending-text-container">
+    <p class="fade-in-text" style="animation-delay: 1.5s">The future of humanity <span class="fade-in-text"></span></p>
+    <p class="fade-in-text" style="animation-delay: 3.5s">and indeed all life on Earth <span class="fade-in-text"></span></p>
+    <p class="fade-in-text" style="animation-delay: 6s">depends on us! <span class="fade-in-text"></span></p>
+    <p class="fade-in-text author" style="animation-delay: 8s">— Sir David Attenborough</p>
+  </div>
   <button class="enterButton" role="button" onclick=startAnimation()>START</button>
   <script>
 
@@ -208,6 +214,16 @@
     function initializeEarthPosition() {
       scene.rotation.x = 0.2;
       scene.rotation.y = -1.5;
+    }
+
+    function showEndingText() {
+      startEndingTextAnimation();
+      setTimeout(function() {
+        stopEndingTextAnimation();
+        setTimeout(function(){
+          location.reload();
+        }, 2000);
+      }, 11000);
     }
 
     function showEndingVideo() {
@@ -367,7 +383,7 @@
     var currentPoint;
     var visitedPoints = new Set();
     var modal;
-    var debug = true;
+    var debug = false;
 
     document.onkeydown = checkKey;
     function animatePosition(targetAngle, speed, onUpdate, onComplete, onStart=null) {
@@ -618,6 +634,30 @@
       }
     }
 
+    function startEndingTextAnimation() {
+      const textContainer = document.getElementById('ending-text-container');
+      textContainer.style.display = 'block';
+      const elements = textContainer.getElementsByClassName('fade-in-text');
+      for(const element of elements) {
+        element.classList.remove('fi-text-animation'); // reset animation
+        void element.offsetWidth; // trigger reflow
+        element.classList.add('fi-text-animation'); // start animation
+      }
+    }
+
+    function stopEndingTextAnimation() {
+      const textContainer = document.getElementById('ending-text-container');
+      textContainer.style.display = 'none';
+      const elements = textContainer.getElementsByClassName('fade-in-text');
+      for(const element of elements) {
+        element.style.opacity = 1;
+        element.style.animationDelay = '0s';
+        element.classList.remove('fo-text-animation'); // reset animation
+        void element.offsetWidth; // trigger reflow
+        element.classList.add('fo-text-animation'); // start animation
+      }
+    }
+
     const Timer = function () {
       // Clock
       const timeElm = document.getElementById('time');
@@ -695,7 +735,7 @@
           }
           resetOriginalPosition();
           disableKeyInput();
-          showEndingVideo();
+          showEndingText();
         });
       }
     }
@@ -737,6 +777,7 @@
       instructionText.style.display = 'none';
       if (!debug) {
         startTextAnimation();
+        stopEndingTextAnimation();
         setTimeout(function() {
           stopTextAnimation();
           zoomToEarth();
